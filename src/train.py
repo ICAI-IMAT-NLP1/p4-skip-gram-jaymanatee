@@ -33,13 +33,14 @@ def train_skipgram(model: SkipGramNeg,
     """
     # Define loss and optimizer
     # TODO
-    criterion = None
+    criterion = NegativeSamplingLoss()
     optimizer = optim.Adam(model.parameters(), lr=learning_rate)
 
+    neg_samples = 10
     steps = 0
     # Training loop
     for epoch in range(epochs):
-        for input_words, target_words in None:
+        for input_words, target_words in get_batches(words, batch_size, window_size):
             steps += 1
             # Convert inputs and context words into tensors
             inputs, targets = torch.LongTensor(input_words), torch.LongTensor(target_words)
@@ -47,22 +48,24 @@ def train_skipgram(model: SkipGramNeg,
 
             # input, output, and noise vectors
             # TODO
-            input_vectors = None
-            output_vectors = None
-            noise_vectors = None
+            input_vectors = model.forward_input(torch.tensor(input_words, device=device))
+            output_vectors = model.forward_output(torch.tensor(target_words, device=device))
+            noise_vectors = model.forward_noise(input_vectors.size(0), neg_samples)
             
             # negative sampling loss
             # TODO
-            loss = criterion(None, None, None)
+            loss = criterion(input_vectors, output_vectors, noise_vectors)
 
             # Backward step
             # TODO
+            loss.backward()
+            optimizer.step()
 
             if steps % print_every == 0:
                 print(f"Epoch: {epoch+1}/{epochs}, Step: {steps}, Loss: {loss.item()}")
                 # Cosine similarity
                 # TODO
-                valid_examples, valid_similarities = cosine_similarity(None, device=device)
+                valid_examples, valid_similarities = cosine_similarity(model.in_embed, device=device)
                 _, closest_idxs = valid_similarities.topk(6)
 
                 valid_examples, closest_idxs = valid_examples.to('cpu'), closest_idxs.to('cpu')

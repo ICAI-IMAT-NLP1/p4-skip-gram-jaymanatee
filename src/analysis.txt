@@ -1,0 +1,2 @@
+As we can see, words with a similar context do appear together many times. 
+Examples of this are states, republic, party or church, christian.
